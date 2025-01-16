@@ -1,4 +1,6 @@
 from random import randint, choice
+# from game_objects.player import Player
+# from game_objects.weapons import Weapon
 import pygame
 pygame.init()
 
@@ -89,6 +91,7 @@ class Apple(Fruit):
     def reset(self):
         self.reset_position()
 
+
 class Bomb(GameObject):
     def __init__(self):
         super(Bomb, self).__init__(0, 0, 'assets/temp_assets/bomb.png')
@@ -103,10 +106,14 @@ class Bomb(GameObject):
         self.rect.x = choice(lanes)
         self.rect.y = -64
 
+
 player = Player()
 strawberry = Strawberry()
 apple = Apple()
 bomb = Bomb()
+xp = 0 
+level = 1
+xp_to_next_level = 10
 
 all_sprites.add(player, apple, strawberry, bomb)
 fruit_sprites.add(apple, strawberry)
@@ -118,6 +125,12 @@ font = pygame.font.SysFont(None, 32)
 def display_score():
     score_text = font.render(f"Score: {score}", True, (0, 0, 0))
     screen.blit(score_text, (10, 10))
+
+def display_xp_and_level():
+    level_text = font.render(f"Level: {level}", True, (0,0,0))
+    xp_text = font.render(f"XP: {xp}/{xp_to_next_level}", True, (0,0,0))
+    screen.blit(level_text, (10, 70))
+    screen.blit(xp_text, (10, 100))
 
 lives = 3
 heart_image = pygame.image.load('assets/temp_assets/player.png')
@@ -152,7 +165,14 @@ while running:
     fruit = pygame.sprite.spritecollideany(player, fruit_sprites)
     if fruit:
         score += 1
+        xp += 1 #add xp for collecting a fruit
         fruit.reset()
+
+        #check for level up
+        if xp >= xp_to_next_level:
+            level += 1
+            xp -= xp_to_next_level #carry over excess XP
+            xp_to_next_level = int(xp_to_next_level * 1.5) #increase XP needed for next level
 
     if pygame.sprite.collide_rect(player, bomb):
         lives -= 1
@@ -163,6 +183,7 @@ while running:
 
     display_score()
     display_lives()
+    display_xp_and_level()
     pygame.display.flip()
     clock.tick(60)
 
