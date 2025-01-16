@@ -1,6 +1,6 @@
 from random import randint, choice
 # from game_objects.player import Player
-# from game_objects.weapons import Weapon
+from game_objects.weapons import TailWhip, Fangs, Cookbook
 import pygame
 pygame.init()
 
@@ -31,34 +31,60 @@ class Player(GameObject):
         self.dy = self.rect.y
         self.pos_x = 1
         self.pos_y = 1
+        self.weapon = None  # Default weapon is None
+
+    def equip_weapon(self, weapon):
+        """Equip a weapon and notify the player."""
+        self.weapon = weapon
+        print(f"Equipped {self.weapon.name}")
+    
+    def attack(self):
+        """Perform an attack if a weapon is equipped."""
+        if self.weapon:
+            print(f"Attacking with {self.weapon.name} (Damage: {self.weapon.damage})")
+        else:
+            print("No weapon equipped!")
 
     def left(self):
+        """Move the player left if within bounds."""
         if self.pos_x > 0:
             self.pos_x -= 1
             self.update_dx_dy()
 
     def right(self):
+        """Move the player right if within bounds."""
         if self.pos_x < len(lanes) - 1:
             self.pos_x += 1
             self.update_dx_dy()
 
     def up(self):
+        """Move the player up if within bounds."""
         if self.pos_y > 0:
             self.pos_y -= 1
             self.update_dx_dy()
 
     def down(self):
+        """Move the player down if within bounds."""
         if self.pos_y < len(lanes) - 1:
             self.pos_y += 1
             self.update_dx_dy()
 
     def move(self):
+        """Smoothly move the player toward its target position."""
         self.rect.x -= (self.rect.x - self.dx) * 0.25
         self.rect.y -= (self.rect.y - self.dy) * 0.25
 
     def update_dx_dy(self):
+        """Update target coordinates based on the player's current lane position."""
         self.dx = lanes[self.pos_x]
         self.dy = lanes[self.pos_y]
+
+    def reset(self):
+        """Reset the player's position to the starting point."""
+        self.rect.x, self.rect.y = 93, 93  # Reset to initial position
+        self.dx, self.dy = self.rect.x, self.rect.y
+        self.pos_x, self.pos_y = 1, 1
+        print("Player position reset!")
 
 class Fruit(GameObject):
     def reset_position(self):
@@ -132,12 +158,45 @@ def display_xp_and_level():
     screen.blit(level_text, (10, 70))
     screen.blit(xp_text, (10, 100))
 
+def display_level_up_message():
+    level_up_text = font.render("Level Up!", True, (255, 255, 0))
+    screen.blit(level_up_text, (image_width// 2 - 50, image_height// 2 - 10))
+
 lives = 3
 heart_image = pygame.image.load('assets/temp_assets/player.png')
 
 def display_lives():
     for i in range(lives):
         screen.blit(heart_image, (10 + i * 40, 40))
+
+def level_up_menu():
+    global selected_weapon
+    menu_running = True
+    weapons = [TailWhip(), Fangs(), Cookbook()]
+
+    while menu_running:
+        screen.fill((0, 0, 0))
+        font = pygame.font.SysFont(None, 48)
+        title = font.render("Choose Your Weapon!", True, (255, 255, 255))
+        screen.blit(title, (image_width // 2 - title.get_width() // 2, 50))
+
+        for i, weapon in enumerate(weapons):
+            weapon_text = font.render(f"{i + 1}: {weapon.name}", True, (255, 255, 255))
+            screen.blit(weapon_text, (50, 150 + i * 50))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key in [pygame.K_1, pygame.K_2, pygame.K_3]:
+                    selected_weapon = weapons[event.key - pygame.K_1]
+                    menu_running = False
+
+
+
 
 running = True
 while running:
@@ -171,8 +230,17 @@ while running:
         #check for level up
         if xp >= xp_to_next_level:
             level += 1
-            xp -= xp_to_next_level #carry over excess XP
-            xp_to_next_level = int(xp_to_next_level * 1.5) #increase XP needed for next level
+            xp -= xp_to_next_level  # Carry over excess XP
+            xp_to_next_level = int(xp_to_next_level * 1.5)  # Increase XP needed for next level
+
+            display_level_up_message()
+            pygame.display.flip()
+            pygame.time.wait(1000)
+
+            level_up_menu()
+
+            if selected_weapon:
+                player.equip_weapon(selected_weapon)  # Equip the selected weapon
 
     if pygame.sprite.collide_rect(player, bomb):
         lives -= 1

@@ -1,11 +1,20 @@
-from game import GameObject
 
-class Weapon(GameObject):
-    def __init__(self, x, y, image, speed=10):
-        super().__init__(x, y, image)
-        self.speed = speed
+import pygame
 
-    def move(self):
-        self.rect.y -= self.speed
-        if self.rect.y < 0:
-            self.kill()
+class Weapon:
+    def __init__(self, name, image_path, damage):
+        self.name = name
+        self.image = pygame.image.load(image_path)
+        self.damage = damage
+
+class TailWhip(Weapon):
+    def __init__(self):
+        super().__init__("Tail Whip", "assets/temp_assets/red_knife.png", damage=10)
+
+class Fangs(Weapon):
+    def __init__(self):
+        super().__init__("Fangs", "assets/temp_assets/spear.png", damage=20)
+
+class Cookbook(Weapon):
+    def __init__(self):
+        super().__init__("Remey's Cookbook", "assets/temp_assets/staff.png", damage=50)
