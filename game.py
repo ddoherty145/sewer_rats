@@ -9,7 +9,6 @@ from game_objects.exp import generate_random_fruit, Strawberry, Apple
 
 pygame.init()
 
-
 # Constants
 background_image_path = '/Users/froztydavie/Documents/sewer-rats/images/kitchen_floor.png'
 background = pygame.image.load(background_image_path)
@@ -26,11 +25,11 @@ drop_group = pygame.sprite.Group()
 # Initialize Objects
 player = Player(screen_width=image_width, screen_height=image_height)
 
-# Enemy Initialization
+# Enemy Initialization without scaling
 cat = Cat(randint(0, image_width - 50), -100, drop_group, screen_height=image_height)
 chef = Chef(randint(0, image_width - 50), -150, drop_group, screen_height=image_height)
 
-# Items
+# Items without scaling
 strawberry = Strawberry(x=randint(0, image_width - 50), y=randint(-image_height, 0))
 apple = Apple(x=randint(0, image_width - 50), y=randint(-image_height, 0))
 
@@ -50,6 +49,18 @@ selected_weapon = None
 pygame.font.init()
 font = pygame.font.SysFont(None, 32)
 large_font = pygame.font.SysFont(None, 48)
+
+# Load Sounds
+pygame.mixer.init()
+
+# Background music
+pygame.mixer.music.load('/Users/froztydavie/Documents/sewer-rats/sounds/Goblins_Dance_(Battle).wav')
+pygame.mixer.music.play(loops=-1, start=0.0)  # Loops indefinitely
+pygame.mixer.music.set_volume(0.5)  # Set background music volume
+
+# Sound effects
+fruit_collection_sound = pygame.mixer.Sound('/Users/froztydavie/Documents/sewer-rats/sounds/Retro PickUp 18.wav')
+level_up_sound = pygame.mixer.Sound('/Users/froztydavie/Documents/sewer-rats/sounds/Retro PowerUP 09.wav')
 
 # Add to groups
 all_sprites.add(player, apple, strawberry, cat, chef)
@@ -122,7 +133,6 @@ while running:
             running = False
 
     # Background Scrolling
-    background_y = (background_y + player.speed // 2) % image_height
     screen.blit(background, (0, background_y - image_height))
     screen.blit(background, (0, background_y))
 
@@ -139,6 +149,7 @@ while running:
         score += 1
         xp += 1
         fruit.reset_position()
+        fruit_collection_sound.play()  # Play fruit collection sound
 
         if xp >= xp_to_next_level:
             level += 1
@@ -146,6 +157,7 @@ while running:
             xp_to_next_level = int(xp_to_next_level * 1.5)
             display_level_up_message()
             level_up_menu()
+            level_up_sound.play()  # Play level up sound
             if selected_weapon:
                 player.equip_weapon(selected_weapon)
 
@@ -185,7 +197,6 @@ while running:
         pygame.display.flip()
         pygame.time.wait(2000)
         break
-
 
     # Update and Render Entities
     for entity in all_sprites:

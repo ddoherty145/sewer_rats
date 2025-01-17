@@ -1,8 +1,6 @@
 import pygame
 from game_objects.enemy import Enemy
 
-import pygame
-
 class Cat(Enemy):
     def __init__(self, x, y, drop_group, screen_height):
         # Initialize the Enemy class with Cat-specific parameters

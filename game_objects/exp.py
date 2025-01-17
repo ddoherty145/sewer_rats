@@ -43,8 +43,6 @@ class Apple(Fruit):
 
 
 
-
-
 # Factory method to generate random fruits
 def generate_random_fruit(x, y):
     return choice([Strawberry(x, y), Apple(x, y)])
