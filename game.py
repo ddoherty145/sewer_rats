@@ -1,173 +1,77 @@
-from random import randint, choice
-# from game_objects.player import Player
-from game_objects.weapons import TailWhip, Fangs, Cookbook
 import pygame
+from random import randint
+from game_objects.player import Player
+from game_objects.enemy import Enemy
+from game_objects.Enemies.chef import Chef
+from game_objects.Enemies.cat import Cat
+from game_objects.weapons import TailWhip, Fangs, Cookbook
+from game_objects.exp import generate_random_fruit, Strawberry, Apple
+
 pygame.init()
 
-# Background
-background_image_path = 'assets/temp_assets/firey_dungeon.png'
+# Constants
+background_image_path = '/Users/froztydavie/Documents/sewer-rats/assets/temp_assets/firey_dungeon.png'
 background = pygame.image.load(background_image_path)
-
 image_width, image_height = background.get_size()
 screen = pygame.display.set_mode([image_width, image_height])
 clock = pygame.time.Clock()
+
+# Groups
 all_sprites = pygame.sprite.Group()
+enemy_sprites = pygame.sprite.Group()
 fruit_sprites = pygame.sprite.Group()
-lanes = [93, 218, 343]
+drop_group = pygame.sprite.Group()
 
-class GameObject(pygame.sprite.Sprite):
-    def __init__(self, x, y, image):
-        super(GameObject, self).__init__()
-        self.surf = pygame.image.load(image)
-        self.rect = self.surf.get_rect(topleft=(x, y))
+# Initialize Objects
+player = Player(screen_width=image_width, screen_height=image_height)
+cat = Cat(randint(0, image_width - 50), -100, drop_group, screen_height=image_height)
+chef = Chef(randint(0, image_width - 50), -150, drop_group)
+strawberry = Strawberry(x=randint(0, image_width - 50), y=randint(-image_height, 0))
+apple = Apple(x=randint(0, image_width - 50), y=randint(-image_height, 0))
 
-    def render(self, screen):
-        screen.blit(self.surf, self.rect.topleft)
-
-class Player(GameObject):
-    def __init__(self):
-        super(Player, self).__init__(93, 93, 'assets/temp_assets/player.png')
-        self.dx = self.rect.x
-        self.dy = self.rect.y
-        self.pos_x = 1
-        self.pos_y = 1
-        self.weapon = None  # Default weapon is None
-
-    def equip_weapon(self, weapon):
-        """Equip a weapon and notify the player."""
-        self.weapon = weapon
-        print(f"Equipped {self.weapon.name}")
-    
-    def attack(self):
-        """Perform an attack if a weapon is equipped."""
-        if self.weapon:
-            print(f"Attacking with {self.weapon.name} (Damage: {self.weapon.damage})")
-        else:
-            print("No weapon equipped!")
-
-    def left(self):
-        """Move the player left if within bounds."""
-        if self.pos_x > 0:
-            self.pos_x -= 1
-            self.update_dx_dy()
-
-    def right(self):
-        """Move the player right if within bounds."""
-        if self.pos_x < len(lanes) - 1:
-            self.pos_x += 1
-            self.update_dx_dy()
-
-    def up(self):
-        """Move the player up if within bounds."""
-        if self.pos_y > 0:
-            self.pos_y -= 1
-            self.update_dx_dy()
-
-    def down(self):
-        """Move the player down if within bounds."""
-        if self.pos_y < len(lanes) - 1:
-            self.pos_y += 1
-            self.update_dx_dy()
-
-    def move(self):
-        """Smoothly move the player toward its target position."""
-        self.rect.x -= (self.rect.x - self.dx) * 0.25
-        self.rect.y -= (self.rect.y - self.dy) * 0.25
-
-    def update_dx_dy(self):
-        """Update target coordinates based on the player's current lane position."""
-        self.dx = lanes[self.pos_x]
-        self.dy = lanes[self.pos_y]
-
-    def reset(self):
-        """Reset the player's position to the starting point."""
-        self.rect.x, self.rect.y = 93, 93  # Reset to initial position
-        self.dx, self.dy = self.rect.x, self.rect.y
-        self.pos_x, self.pos_y = 1, 1
-        print("Player position reset!")
-
-class Fruit(GameObject):
-    def reset_position(self):
-        self.rect.x = choice(lanes)
-        self.rect.y = -64
-
-class Strawberry(Fruit):
-    def __init__(self):
-        super(Strawberry, self).__init__(0, 0, 'assets/temp_assets/strawberry.png')
-        self.reset()
-
-    def move(self):
-        self.rect.y += 5
-        if self.rect.y > image_height:
-            self.reset()
-
-    def reset(self):
-        self.reset_position()
-
-class Apple(Fruit):
-    def __init__(self):
-        super(Apple, self).__init__(0, 0, 'assets/temp_assets/apple.png')
-        self.reset()
-
-    def move(self):
-        self.rect.y += 4
-        if self.rect.y > image_height:
-            self.reset()
-
-    def reset(self):
-        self.reset_position()
-
-
-class Bomb(GameObject):
-    def __init__(self):
-        super(Bomb, self).__init__(0, 0, 'assets/temp_assets/bomb.png')
-        self.reset()
-
-    def move(self):
-        self.rect.y += 3
-        if self.rect.y > image_height:
-            self.reset()
-
-    def reset(self):
-        self.rect.x = choice(lanes)
-        self.rect.y = -64
-
-
-player = Player()
-strawberry = Strawberry()
-apple = Apple()
-bomb = Bomb()
-xp = 0 
+# Game State
+score = 0
+xp = 0
 level = 1
 xp_to_next_level = 10
+lives = 3
+selected_weapon = None
 
-all_sprites.add(player, apple, strawberry, bomb)
-fruit_sprites.add(apple, strawberry)
-
-score = 0
+# UI Elements
 pygame.font.init()
 font = pygame.font.SysFont(None, 32)
+large_font = pygame.font.SysFont(None, 48)
+# heart_image = pygame.image.load('assets/temp_assets/heart.png')
 
+# Add to groups
+all_sprites.add(player, apple, strawberry, cat, chef)
+fruit_sprites.add(apple, strawberry)
+enemy_sprites.add(cat, chef)
+
+# Functions
 def display_score():
     score_text = font.render(f"Score: {score}", True, (0, 0, 0))
     screen.blit(score_text, (10, 10))
 
 def display_xp_and_level():
-    level_text = font.render(f"Level: {level}", True, (0,0,0))
-    xp_text = font.render(f"XP: {xp}/{xp_to_next_level}", True, (0,0,0))
-    screen.blit(level_text, (10, 70))
-    screen.blit(xp_text, (10, 100))
+    level_text = font.render(f"Level: {level}", True, (0, 0, 0))
+    xp_text = font.render(f"XP: {xp}/{xp_to_next_level}", True, (0, 0, 0))
+    screen.blit(level_text, (10, 50))
+    screen.blit(xp_text, (10, 80))
+
+# def display_lives():
+#     for i in range(lives):
+#         screen.blit(heart_image, (10 + i * 40, 100))
 
 def display_level_up_message():
-    level_up_text = font.render("Level Up!", True, (255, 255, 0))
-    screen.blit(level_up_text, (image_width// 2 - 50, image_height// 2 - 10))
+    level_up_text = large_font.render("Level Up!", True, (255, 255, 0))
+    screen.blit(level_up_text, (image_width // 2 - 100, image_height // 2 - 20))
+    pygame.display.flip()
+    pygame.time.wait(1000)
 
-lives = 3
-heart_image = pygame.image.load('assets/temp_assets/player.png')
-
-def display_lives():
-    for i in range(lives):
-        screen.blit(heart_image, (10 + i * 40, 40))
+def reset(self):
+    self.rect.x = randint(0, image_width - self.rect.width)
+    self.rect.y = randint(-image_height, 0)
 
 def level_up_menu():
     global selected_weapon
@@ -176,8 +80,7 @@ def level_up_menu():
 
     while menu_running:
         screen.fill((0, 0, 0))
-        font = pygame.font.SysFont(None, 48)
-        title = font.render("Choose Your Weapon!", True, (255, 255, 255))
+        title = large_font.render("Choose Your Weapon!", True, (255, 255, 255))
         screen.blit(title, (image_width // 2 - title.get_width() // 2, 50))
 
         for i, weapon in enumerate(weapons):
@@ -195,63 +98,84 @@ def level_up_menu():
                     selected_weapon = weapons[event.key - pygame.K_1]
                     menu_running = False
 
-
-
-
 running = True
+background_y = 0
 while running:
+    # Event Handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                running = False
-            elif event.key == pygame.K_LEFT:
-                player.left()
-            elif event.key == pygame.K_RIGHT:
-                player.right()
-            elif event.key == pygame.K_UP:
-                player.up()
-            elif event.key == pygame.K_DOWN:
-                player.down()
 
-    screen.blit(background, (0, 0))
+    # Background Scrolling
+    background_y = (background_y + player.speed // 2) % image_height
+    screen.blit(background, (0, background_y - image_height))
+    screen.blit(background, (0, background_y))
 
-    for entity in all_sprites:
-        entity.move()
-        entity.render(screen)
+    # Player Movement
+    keys = pygame.key.get_pressed()
+    player.move(keys)  # Pass keys to Player's move method
 
+    # Collision Handling
     fruit = pygame.sprite.spritecollideany(player, fruit_sprites)
     if fruit:
         score += 1
-        xp += 1 #add xp for collecting a fruit
+        xp += 1
         fruit.reset()
 
-        #check for level up
         if xp >= xp_to_next_level:
             level += 1
-            xp -= xp_to_next_level  # Carry over excess XP
-            xp_to_next_level = int(xp_to_next_level * 1.5)  # Increase XP needed for next level
-
+            xp -= xp_to_next_level
+            xp_to_next_level = int(xp_to_next_level * 1.5)
             display_level_up_message()
-            pygame.display.flip()
-            pygame.time.wait(1000)
-
             level_up_menu()
-
             if selected_weapon:
-                player.equip_weapon(selected_weapon)  # Equip the selected weapon
+                player.equip_weapon(selected_weapon)
 
-    if pygame.sprite.collide_rect(player, bomb):
+    # Enemy Collision
+    for enemy in enemy_sprites:
+        if player.attacks(enemy):  # Call player's attack method
+            if player.weapon:
+                enemy.take_damage(player.weapon.damage)
+
+    # Player and Cat Collision
+    if pygame.sprite.collide_rect(player, cat):
         lives -= 1
         if lives <= 0:
             running = False
         else:
             player.reset()
 
+    # Handle Items Dropped from Enemies
+    for item in drop_group:
+        item.move()
+        screen.blit(item.surf, item.rect.topleft)
+
+    collected_item = pygame.sprite.spritecollideany(player, drop_group)
+    if collected_item:
+        collected_item.apply_effect(player)
+        collected_item.kill()
+
+    # Check Lives
+    if lives <= 0:
+        game_over_font = large_font.render("Game Over!", True, (255, 0, 0))
+        screen.blit(game_over_font, (image_width // 2 - game_over_font.get_width() // 2, image_height // 2 - 20))
+        pygame.display.flip()
+        pygame.time.wait(2000)
+        break
+
+    # Update and Render Entities
+    for entity in all_sprites:
+        if isinstance(entity, Player):
+            entity.move(keys)
+        elif hasattr(entity, 'move'):
+            entity.move()
+        entity.render(screen)
+
+    # Display UI
     display_score()
-    display_lives()
     display_xp_and_level()
+
+    # Update Screen
     pygame.display.flip()
     clock.tick(60)
 
