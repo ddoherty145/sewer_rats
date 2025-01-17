@@ -23,22 +23,25 @@ class Fruit(pygame.sprite.Sprite):
 
 class Strawberry(Fruit):
     def __init__(self, x, y):
-        super().__init__(x, y, '/Users/froztydavie/Documents/sewer-rats/assets/temp_assets/strawberry.png')
+        super().__init__(x, y, '/Users/froztydavie/Documents/sewer-rats/assets/FreePixelFood/Assets/FreePixelFood/Sprite/Food/Cheese.png')
 
     def apply_effect(self, player):
         """Define the effect of collecting the strawberry."""
         player.score += 5  # Example: Add to the player's score
-        player.xp += 2
+        player.xp += 5
         player.heal(1)  # Heal the player by 1 health point
 
 class Apple(Fruit):
     def __init__(self, x, y):
-        super().__init__(x, y, '/Users/froztydavie/Documents/sewer-rats/assets/temp_assets/apple.png')
+        super().__init__(x, y, '/Users/froztydavie/Documents/sewer-rats/assets/Ghostpixxells_pixelfood/81_pizza.png')
 
     def apply_effect(self, player):
         """Define the effect of collecting the apple."""
         player.heal(1)  # Heal the player by 1 health point
         player.xp += 1
+        player.score += 10
+
+
 
 
 

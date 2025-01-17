@@ -9,7 +9,7 @@ class Cat(Enemy):
         super().__init__(
             x=x,
             y=y,
-            image_path='/Users/froztydavie/Documents/sewer-rats/assets/temp_assets/WhiteCatIdle.png',
+            image_path='/Users/froztydavie/Documents/sewer-rats/assets/Pet Cats Pack/Cat-2/Cat-2-Sitting.png',
             health=30,  # Example health value for a Cat
             speed=2,    # Example speed value for a Cat
             damage=10,  # Example damage value for a Cat

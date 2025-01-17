@@ -3,7 +3,7 @@ from game_objects.game_objects import GameObject
 
 class Player(GameObject):
     def __init__(self, screen_width, screen_height):
-        super(Player, self).__init__(93, 93, '/Users/froztydavie/Documents/sewer-rats/assets/temp_assets/player.png')
+        super(Player, self).__init__(93, 93, '/Users/froztydavie/Documents/sewer-rats/assets/char free/char_walk_right.gif')
         self.base_speed = 5  # Base movement speed
         self.speed = self.base_speed
         self.is_slowed = False

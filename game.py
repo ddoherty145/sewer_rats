@@ -9,8 +9,9 @@ from game_objects.exp import generate_random_fruit, Strawberry, Apple
 
 pygame.init()
 
+
 # Constants
-background_image_path = '/Users/froztydavie/Documents/sewer-rats/assets/temp_assets/firey_dungeon.png'
+background_image_path = '/Users/froztydavie/Documents/sewer-rats/images/kitchen_floor.png'
 background = pygame.image.load(background_image_path)
 image_width, image_height = background.get_size()
 screen = pygame.display.set_mode([image_width, image_height])
@@ -24,8 +25,12 @@ drop_group = pygame.sprite.Group()
 
 # Initialize Objects
 player = Player(screen_width=image_width, screen_height=image_height)
+
+# Enemy Initialization
 cat = Cat(randint(0, image_width - 50), -100, drop_group, screen_height=image_height)
 chef = Chef(randint(0, image_width - 50), -150, drop_group, screen_height=image_height)
+
+# Items
 strawberry = Strawberry(x=randint(0, image_width - 50), y=randint(-image_height, 0))
 apple = Apple(x=randint(0, image_width - 50), y=randint(-image_height, 0))
 
@@ -45,7 +50,6 @@ selected_weapon = None
 pygame.font.init()
 font = pygame.font.SysFont(None, 32)
 large_font = pygame.font.SysFont(None, 48)
-# heart_image = pygame.image.load('assets/temp_assets/heart.png')
 
 # Add to groups
 all_sprites.add(player, apple, strawberry, cat, chef)
@@ -63,19 +67,26 @@ def display_xp_and_level():
     screen.blit(level_text, (10, 50))
     screen.blit(xp_text, (10, 80))
 
-# def display_lives():
-#     for i in range(lives):
-#         screen.blit(heart_image, (10 + i * 40, 100))
-
 def display_level_up_message():
     level_up_text = large_font.render("Level Up!", True, (255, 255, 0))
     screen.blit(level_up_text, (image_width // 2 - 100, image_height // 2 - 20))
     pygame.display.flip()
     pygame.time.wait(1000)
 
-def reset(self):
-    self.rect.x = randint(0, image_width - self.rect.width)
-    self.rect.y = randint(-image_height, 0)
+def respawn_enemy(enemy, screen_width, screen_height):
+    """Respawn an enemy if it's off-screen or dead."""
+    if enemy.rect.bottom <= 0 or enemy.health <= 0:  # Enemy is off-screen or dead
+        # Ensure a valid random spawn position
+        if screen_width > enemy.rect.width:  # Only try to spawn if the screen is wide enough
+            spawn_x = randint(0, screen_width - enemy.rect.width)
+        else:
+            spawn_x = 0  # If screen is smaller than the enemy, spawn at the left edge
+        
+        enemy.rect.x = spawn_x
+        enemy.rect.y = -50  # Spawn just above the screen
+        enemy.health = 100  # Reset enemy health
+        enemy_sprites.add(enemy)  # Re-add to the enemy group
+
 
 def level_up_menu():
     global selected_weapon
@@ -117,7 +128,7 @@ while running:
 
     # Player Movement
     keys = pygame.key.get_pressed()
-    player.move(keys)  # Pass keys to Player's move method
+    player.move(keys)
 
     # Player Auto-Attack
     player.attack()
@@ -145,6 +156,9 @@ while running:
                 player.weapon.attack(player)
                 enemy.take_damage(player.weapon.damage)
                 player.weapon.update_projectiles(screen, enemy_sprites)
+        
+        # Respawn enemy if it's off-screen or dead
+        respawn_enemy(enemy, image_width, image_height)
 
     # Player and Cat Collision
     if pygame.sprite.collide_rect(player, cat):
