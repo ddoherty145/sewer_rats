@@ -25,9 +25,13 @@ drop_group = pygame.sprite.Group()
 # Initialize Objects
 player = Player(screen_width=image_width, screen_height=image_height)
 cat = Cat(randint(0, image_width - 50), -100, drop_group, screen_height=image_height)
-chef = Chef(randint(0, image_width - 50), -150, drop_group)
+chef = Chef(randint(0, image_width - 50), -150, drop_group, screen_height=image_height)
 strawberry = Strawberry(x=randint(0, image_width - 50), y=randint(-image_height, 0))
 apple = Apple(x=randint(0, image_width - 50), y=randint(-image_height, 0))
+
+# Starting Weapon
+tail_whip = TailWhip()
+player.equip_weapon(tail_whip)
 
 # Game State
 score = 0
@@ -115,12 +119,15 @@ while running:
     keys = pygame.key.get_pressed()
     player.move(keys)  # Pass keys to Player's move method
 
+    # Player Auto-Attack
+    player.attack()
+
     # Collision Handling
     fruit = pygame.sprite.spritecollideany(player, fruit_sprites)
     if fruit:
         score += 1
         xp += 1
-        fruit.reset()
+        fruit.reset_position()
 
         if xp >= xp_to_next_level:
             level += 1
@@ -135,7 +142,9 @@ while running:
     for enemy in enemy_sprites:
         if player.attacks(enemy):  # Call player's attack method
             if player.weapon:
+                player.weapon.attack(player)
                 enemy.take_damage(player.weapon.damage)
+                player.weapon.update_projectiles(screen, enemy_sprites)
 
     # Player and Cat Collision
     if pygame.sprite.collide_rect(player, cat):
@@ -163,6 +172,7 @@ while running:
         pygame.time.wait(2000)
         break
 
+
     # Update and Render Entities
     for entity in all_sprites:
         if isinstance(entity, Player):
@@ -176,6 +186,7 @@ while running:
     display_xp_and_level()
 
     # Update Screen
+    player.render(screen)
     pygame.display.flip()
     clock.tick(60)
 

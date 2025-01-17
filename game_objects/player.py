@@ -16,6 +16,16 @@ class Player(GameObject):
         self.max_health = 100  # Starting health
         self.current_health = self.max_health
 
+        # Experience Points
+        self.xp = 0  # Add experience points attribute
+
+        # Facing Direction
+        self.facing_right = True
+
+        # Player stats
+        self.score = 0  # Initialize score attribute
+        self.xp = 0  # Initialize xp attribute
+
     def equip_weapon(self, weapon):
         """Equip a weapon and notify the player."""
         self.weapon = weapon
@@ -46,8 +56,10 @@ class Player(GameObject):
 
         if keys[pygame.K_LEFT] and self.rect.left > 0:
             self.rect.x -= self.speed
+            self.facing_right = False  # Player is facing left
         if keys[pygame.K_RIGHT] and self.rect.right < self.screen_width:
             self.rect.x += self.speed
+            self.facing_right = True  # Player is facing right
         if keys[pygame.K_UP] and self.rect.top > 0:
             self.rect.y -= self.speed
         if keys[pygame.K_DOWN] and self.rect.bottom < self.screen_height:
@@ -86,6 +98,13 @@ class Player(GameObject):
         """Handle player death (e.g., reset health and position, or end the game)."""
         print("Player has died!")
         self.reset()  # Reset the player or you could end the game here
+
+    def heal(self, amount):
+        """Heal the player by a specified amount, ensuring health does not exceed max health."""
+        self.current_health += amount
+        if self.current_health > self.max_health:
+            self.current_health = self.max_health
+        print(f"Player healed by {amount} points. Current health: {self.current_health}")
 
     def render(self, screen):
         """Render the player to the screen."""

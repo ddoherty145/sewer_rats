@@ -31,4 +31,4 @@ class Enemy(pygame.sprite.Sprite):
 
     def render(self, screen):
         """Render the fruit to the screen."""
-        screen.blit(self.surf, self.rect.topleft)
+        screen.blit(self.image, self.rect.topleft)

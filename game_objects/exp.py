@@ -10,7 +10,7 @@ class Fruit(pygame.sprite.Sprite):
     def reset_position(self):
         """Reset fruit to a random position."""
         self.rect.x = choice(range(50, 750))  # Adjust to your screen width
-        self.rect.y = -64  # Start off-screen
+        self.rect.y = -64  # Start off-screen, just above the visible screen
 
     def move(self):
         """Move the fruit down the screen."""
@@ -19,9 +19,6 @@ class Fruit(pygame.sprite.Sprite):
     def render(self, screen):
         """Render the fruit to the screen."""
         screen.blit(self.surf, self.rect.topleft)
-
-    def move(self):
-        pass
 
 
 class Strawberry(Fruit):
@@ -32,7 +29,7 @@ class Strawberry(Fruit):
         """Define the effect of collecting the strawberry."""
         player.score += 5  # Example: Add to the player's score
         player.xp += 2
-
+        player.heal(1)  # Heal the player by 1 health point
 
 class Apple(Fruit):
     def __init__(self, x, y):
@@ -40,8 +37,9 @@ class Apple(Fruit):
 
     def apply_effect(self, player):
         """Define the effect of collecting the apple."""
-        player.health += 1  # Example: Heal the player
+        player.heal(1)  # Heal the player by 1 health point
         player.xp += 1
+
 
 
 # Factory method to generate random fruits
